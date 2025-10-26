@@ -5,6 +5,8 @@ import 'device_tab.dart';
 import 'library_screen.dart';
 import 'audio_manager.dart';
 import 'song.dart';
+import 'profile_screen.dart';
+import 'playlists_screen.dart';
 
 void main() {
   runApp(const TuneBoxApp());
@@ -22,7 +24,7 @@ class TuneBoxApp extends StatelessWidget {
         scaffoldBackgroundColor: Colors.black,
         colorScheme: const ColorScheme.dark(primary: Colors.redAccent),
       ),
-      home: const SplashScreen(), // Use MainScreen instead of Scaffold
+      home: const SplashScreen(),
     );
   }
 }
@@ -41,7 +43,9 @@ class _SplashScreenState extends State<SplashScreen> {
     super.initState();
     Timer(const Duration(seconds: 2), () {
       Navigator.pushReplacement(
-          context, MaterialPageRoute(builder: (_) => const MainScreen()));
+        context,
+        MaterialPageRoute(builder: (_) => const MainScreen()),
+      );
     });
   }
 
@@ -58,10 +62,11 @@ class _SplashScreenState extends State<SplashScreen> {
             Text(
               'TuneBox',
               style: TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.redAccent,
-                  letterSpacing: 1.5),
+                fontSize: 32,
+                fontWeight: FontWeight.bold,
+                color: Colors.redAccent,
+                letterSpacing: 1.5,
+              ),
             ),
           ],
         ),
@@ -140,7 +145,7 @@ class _MainScreenState extends State<MainScreen> {
     final pages = [
       HomeScreen(playlist: _playlist, audioManager: _audioManager),
       const LibraryScreen(),
-      const FavoritesScreen(),
+      PlaylistsScreen(allSongs: _playlist),
       const ProfileScreen(),
     ];
 
@@ -156,15 +161,19 @@ class _MainScreenState extends State<MainScreen> {
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
           BottomNavigationBarItem(
-              icon: Icon(Icons.library_music), label: 'Library'),
-          BottomNavigationBarItem(icon: Icon(Icons.favorite), label: 'Favorites'),
+            icon: Icon(Icons.library_music),
+            label: 'Library',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.playlist_play),
+            label: 'Playlists',
+          ),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
         ],
       ),
     );
   }
 }
-
 
 // ================= HOME SCREEN =================
 
@@ -269,10 +278,7 @@ class _HomeScreenState extends State<HomeScreen>
               ],
             ),
           ),
-          MiniPlayer(
-            audioManager: widget.audioManager,
-            onTap: _openNowPlaying,
-          ),
+          MiniPlayer(audioManager: widget.audioManager, onTap: _openNowPlaying),
         ],
       ),
     );
@@ -327,10 +333,7 @@ class _LocalTab extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 15),
-              _HorizontalSongList(
-                songs: playlist,
-                onSongTap: onSongTap,
-              ),
+              _HorizontalSongList(songs: playlist, onSongTap: onSongTap),
             ],
           ),
         );
@@ -356,12 +359,31 @@ class _OnlineTab extends StatelessWidget {
   Widget build(BuildContext context) {
     // Dummy online songs (no images needed for now)
     final dummyOnlineSongs = [
-      Song(title: 'Online Song 1', artist: 'Artist 1', url: '', image: 'assets/images/cover1.jpg'),
-      Song(title: 'Online Song 2', artist: 'Artist 2', url: '', image: 'assets/images/cover5.jpg'),
-      Song(title: 'Online Song 3', artist: 'Artist 3', url: '', image: 'assets/images/cover2.jpg'),
-      Song(title: 'Online Song 4', artist: 'Artist 4', url: '', image: 'assets/images/cover3.jpg'),
+      Song(
+        title: 'Online Song 1',
+        artist: 'Artist 1',
+        url: '',
+        image: 'assets/images/cover1.jpg',
+      ),
+      Song(
+        title: 'Online Song 2',
+        artist: 'Artist 2',
+        url: '',
+        image: 'assets/images/cover5.jpg',
+      ),
+      Song(
+        title: 'Online Song 3',
+        artist: 'Artist 3',
+        url: '',
+        image: 'assets/images/cover2.jpg',
+      ),
+      Song(
+        title: 'Online Song 4',
+        artist: 'Artist 4',
+        url: '',
+        image: 'assets/images/cover3.jpg',
+      ),
     ];
-
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -379,10 +401,7 @@ class _OnlineTab extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 15),
-          _HorizontalSongList(
-            songs: dummyOnlineSongs,
-            onSongTap: onSongTap,
-          ),
+          _HorizontalSongList(songs: dummyOnlineSongs, onSongTap: onSongTap),
           const SizedBox(height: 25),
           const Text(
             'Recently Played',
@@ -393,16 +412,12 @@ class _OnlineTab extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 15),
-          _HorizontalSongList(
-            songs: recentlyPlayed,
-            onSongTap: onSongTap,
-          ),
+          _HorizontalSongList(songs: recentlyPlayed, onSongTap: onSongTap),
         ],
       ),
     );
   }
 }
-
 
 // ================= REUSABLE WIDGETS =================
 
@@ -435,10 +450,7 @@ class _HorizontalSongList extends StatelessWidget {
   final List<Song> songs;
   final Future<void> Function(Song) onSongTap;
 
-  const _HorizontalSongList({
-    required this.songs,
-    required this.onSongTap,
-  });
+  const _HorizontalSongList({required this.songs, required this.onSongTap});
 
   @override
   Widget build(BuildContext context) {
@@ -473,8 +485,9 @@ class _HorizontalSongList extends StatelessWidget {
               child: Column(
                 children: [
                   ClipRRect(
-                    borderRadius:
-                    const BorderRadius.vertical(top: Radius.circular(15)),
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(15),
+                    ),
                     child: Image.asset(
                       song.image,
                       width: 140,
@@ -564,7 +577,9 @@ class MiniPlayer extends StatelessWidget {
                 ),
                 IconButton(
                   icon: Icon(
-                    audioManager.isPlaying ? Icons.pause_circle : Icons.play_circle,
+                    audioManager.isPlaying
+                        ? Icons.pause_circle
+                        : Icons.play_circle,
                     color: Colors.redAccent,
                   ),
                   onPressed: () async {
@@ -580,13 +595,15 @@ class MiniPlayer extends StatelessWidget {
                   iconSize: 35,
                 ),
                 IconButton(
-                  icon: const Icon(Icons.skip_previous, color: Colors.redAccent),
+                  icon: const Icon(
+                    Icons.skip_previous,
+                    color: Colors.redAccent,
+                  ),
                   onPressed: () async {
                     await audioManager.playPrevious();
                   },
                   iconSize: 35,
                 ),
-
               ],
             ),
           ),
@@ -622,17 +639,18 @@ class _WaveAnimationState extends State<WaveAnimation>
     super.initState();
     _controllers = List.generate(
       5,
-          (index) => AnimationController(
+      (index) => AnimationController(
         vsync: this,
         duration: Duration(milliseconds: 300 + (index * 100)),
       ),
     );
 
-    _animations = _controllers.map((controller) {
-      return Tween<double>(begin: 0.3, end: 1.0).animate(
-        CurvedAnimation(parent: controller, curve: Curves.easeInOut),
-      );
-    }).toList();
+    _animations =
+        _controllers.map((controller) {
+          return Tween<double>(begin: 0.3, end: 1.0).animate(
+            CurvedAnimation(parent: controller, curve: Curves.easeInOut),
+          );
+        }).toList();
 
     if (widget.isPlaying) {
       _startAnimations();
@@ -718,8 +736,11 @@ class NowPlayingScreen extends StatelessWidget {
         backgroundColor: Colors.black,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.keyboard_arrow_down,
-              color: Colors.white, size: 30),
+          icon: const Icon(
+            Icons.keyboard_arrow_down,
+            color: Colors.white,
+            size: 30,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
         centerTitle: true,
@@ -748,8 +769,10 @@ class NowPlayingScreen extends StatelessWidget {
             child: SingleChildScrollView(
               physics: const BouncingScrollPhysics(),
               child: Padding(
-                padding:
-                const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 12,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
@@ -795,9 +818,10 @@ class NowPlayingScreen extends StatelessWidget {
                       value: audioManager.progress,
                       onChanged: (value) {
                         final newPosition = Duration(
-                          milliseconds: (audioManager.totalDuration.inMilliseconds *
-                              value)
-                              .round(),
+                          milliseconds:
+                              (audioManager.totalDuration.inMilliseconds *
+                                      value)
+                                  .round(),
                         );
                         audioManager.seekTo(newPosition);
                       },
@@ -831,7 +855,11 @@ class NowPlayingScreen extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         IconButton(
-                          icon: const Icon(Icons.skip_previous, color: Colors.white, size: 45),
+                          icon: const Icon(
+                            Icons.skip_previous,
+                            color: Colors.white,
+                            size: 45,
+                          ),
                           onPressed: () async {
                             await audioManager.playPrevious();
                           },
@@ -839,7 +867,9 @@ class NowPlayingScreen extends StatelessWidget {
                         const SizedBox(width: 30),
                         IconButton(
                           icon: Icon(
-                            audioManager.isPlaying ? Icons.pause_circle : Icons.play_circle,
+                            audioManager.isPlaying
+                                ? Icons.pause_circle
+                                : Icons.play_circle,
                             color: Colors.redAccent,
                             size: 70,
                           ),
@@ -849,14 +879,17 @@ class NowPlayingScreen extends StatelessWidget {
                         ),
                         const SizedBox(width: 30),
                         IconButton(
-                          icon: const Icon(Icons.skip_next, color: Colors.white, size: 45),
+                          icon: const Icon(
+                            Icons.skip_next,
+                            color: Colors.white,
+                            size: 45,
+                          ),
                           onPressed: () async {
                             await audioManager.playNext();
                           },
                         ),
                       ],
                     ),
-
                     const SizedBox(height: 20),
                   ],
                 ),
@@ -864,36 +897,6 @@ class NowPlayingScreen extends StatelessWidget {
             ),
           );
         },
-      ),
-    );
-  }
-}
-
-// ================= OTHER SCREENS =================
-
-class FavoritesScreen extends StatelessWidget {
-  const FavoritesScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(
-      child: Text(
-        'Favorites Screen',
-        style: TextStyle(color: Colors.white, fontSize: 22),
-      ),
-    );
-  }
-}
-
-class ProfileScreen extends StatelessWidget {
-  const ProfileScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(
-      child: Text(
-        'Profile Screen',
-        style: TextStyle(color: Colors.white, fontSize: 22),
       ),
     );
   }
